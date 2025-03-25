@@ -1,15 +1,18 @@
 [workspace]
-members = ["crm", "user-stat"]
+members = ["crm", "crm-metadata", "crm-notification", "user-stat"]
 resolver = "2"
 
 
 [workspace.dependencies]
 anyhow = "1.0.97"
 chrono = { version = "0.4.40", features = ["serde"] }
+derive_builder = "0.20.2"
+futures = "0.3.31"
 prost = "0.13.5"
 prost-build = "0.13.5"
 prost-types = "0.13.5"
 tokio = { version = "1.44.1", features = ["rt", "rt-multi-thread", "macros"] }
+tokio-stream = "0.1.17"
 tonic = { version = "0.12.3", features = ["zstd", "tls"] }
 tonic-build = "0.12.3"
 serde = { version = "1.0.219", features = ["derive"] }
