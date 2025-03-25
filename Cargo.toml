@@ -14,3 +14,6 @@ tonic = { version = "0.12.3", features = ["zstd", "tls"] }
 tonic-build = "0.12.3"
 serde = { version = "1.0.219", features = ["derive"] }
 sqlx = { version = "0.8.3", features = ["postgres", "runtime-tokio-rustls","chrono","tls-rustls"] }
+serde_yaml = "0.9.34"
+tracing = "0.1.40"
+tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
