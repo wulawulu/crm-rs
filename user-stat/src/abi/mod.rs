@@ -80,11 +80,13 @@ mod tests {
     use super::*;
     use crate::config::AppConfig;
     use anyhow::Result;
-    use chrono::Utc;
     use futures::StreamExt;
     use std::time::SystemTime;
 
-    use crate::pb::{IdQuery, QueryRequestBuilder, TimeQuery};
+    use test_utils::{id, tq};
+
+    use crate::pb::QueryRequestBuilder;
+    use crate::test_utils;
 
     #[tokio::test]
     async fn raw_query_should_work() -> Result<()> {
@@ -129,26 +131,5 @@ mod tests {
         }
 
         Ok(())
-    }
-
-    fn id(id: &[u32]) -> IdQuery {
-        IdQuery { ids: id.to_vec() }
-    }
-
-    fn tq(lower: Option<i64>, upper: Option<i64>) -> TimeQuery {
-        TimeQuery {
-            lower: lower.map(to_ts),
-            upper: upper.map(to_ts),
-        }
-    }
-
-    fn to_ts(days: i64) -> Timestamp {
-        let dt = Utc::now()
-            .checked_sub_signed(chrono::Duration::days(days))
-            .unwrap();
-        Timestamp {
-            seconds: dt.timestamp(),
-            nanos: dt.timestamp_subsec_nanos() as i32,
-        }
     }
 }

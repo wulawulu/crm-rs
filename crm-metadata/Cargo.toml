@@ -7,7 +7,6 @@ license = "MIT"
 [dependencies]
 anyhow = { workspace = true }
 chrono = {workspace = true }
-derive_builder = {workspace = true }
 futures = { workspace = true }
 fake = { version = "4.2.0", features = ["derive", "chrono"] }
 prost = { workspace = true }
@@ -16,14 +15,24 @@ serde={workspace = true}
 serde_yaml = { workspace = true }
 tonic = { workspace = true }
 tokio= { workspace = true }
-sqlx={workspace = true}
-itertools = {workspace = true}
 tracing-subscriber = {workspace = true}
 tracing = {workspace = true}
 tokio-stream = { workspace = true }
 rand = {workspace = true }
 
+[dev-dependencies]
+anyhow = { workspace = true }
+chrono = {workspace = true }
+futures = { workspace = true }
+prost = { workspace = true }
+prost-types = { workspace = true }
+serde={workspace = true}
+serde_yaml = { workspace = true }
+tonic = { workspace = true }
+tokio= { workspace = true }
+tokio-stream = { workspace = true }
+rand = {workspace = true }
+
 [build-dependencies]
 anyhow = { workspace = true }
-proto-builder-trait = { workspace = true }
 tonic-build = { workspace = true }

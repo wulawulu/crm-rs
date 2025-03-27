@@ -6,6 +6,8 @@ resolver = "2"
 [workspace.dependencies]
 anyhow = "1.0.97"
 chrono = { version = "0.4.40", features = ["serde"] }
+crm-notification= { path = "crm-notification" }
+user-stat= { path = "user-stat" }
 derive_builder = "0.20.2"
 futures = "0.3.31"
 prost = "0.13.5"
