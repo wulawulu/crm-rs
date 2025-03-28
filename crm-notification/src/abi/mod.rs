@@ -1,7 +1,9 @@
 use crate::pb::send_request::Msg;
-use crate::pb::{SendRequest, SendResponse};
+use crate::pb::{EmailMessage, SendRequest, SendResponse};
 use crate::{AppConfig, NotificationService, NotificationServiceInner};
 use chrono::Utc;
+use crm_metadata::Tpl;
+use crm_metadata::pb::Content;
 use futures::{Stream, StreamExt};
 use prost_types::Timestamp;
 use std::sync::Arc;
@@ -11,6 +13,7 @@ use tokio::time::sleep;
 use tokio_stream::wrappers::ReceiverStream;
 use tonic::{Response, Status};
 use tracing::{info, warn};
+use uuid::Uuid;
 
 mod email;
 mod in_app;
@@ -73,6 +76,26 @@ fn to_ts() -> Timestamp {
     Timestamp {
         seconds: now.timestamp(),
         nanos: now.timestamp_subsec_nanos() as i32,
+    }
+}
+
+impl SendRequest {
+    pub fn new(
+        subject: String,
+        sender: String,
+        recipients: &[String],
+        contents: &[Content],
+    ) -> Self {
+        let tpl = Tpl(contents);
+        SendRequest {
+            msg: Some(Msg::Email(EmailMessage {
+                message_id: Uuid::new_v4().to_string(),
+                subject,
+                sender,
+                recipients: recipients.to_vec(),
+                body: tpl.to_body(),
+            })),
+        }
     }
 }
 

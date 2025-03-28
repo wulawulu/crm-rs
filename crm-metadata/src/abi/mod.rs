@@ -7,8 +7,9 @@ use fake::{
     Fake, Faker, Rng, faker::chrono::en::DateTimeBetween, faker::lorem::en::Sentence,
     faker::name::en::Name, rand,
 };
-use futures::{Stream, StreamExt};
+use futures::{Stream, StreamExt, stream};
 use prost_types::Timestamp;
+use std::collections::HashSet;
 use tokio::sync::mpsc;
 use tokio_stream::wrappers::ReceiverStream;
 use tonic::{Response, Status};
@@ -73,6 +74,21 @@ fn created_at() -> Option<Timestamp> {
         seconds: date.timestamp(),
         nanos: date.timestamp_subsec_nanos() as i32,
     })
+}
+
+pub struct Tpl<'a>(pub &'a [Content]);
+
+impl Tpl<'_> {
+    pub fn to_body(&self) -> String {
+        format!("Tpl: {:?}", self.0)
+    }
+}
+
+impl MaterializeRequest {
+    pub fn new_with_ids(ids: Vec<u32>) -> impl Stream<Item = Self> {
+        let reqs: HashSet<_> = ids.iter().map(|id| Self { id: *id }).collect();
+        stream::iter(reqs)
+    }
 }
 
 #[cfg(test)]

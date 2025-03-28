@@ -35,4 +35,5 @@ rand = {workspace = true }
 
 [build-dependencies]
 anyhow = { workspace = true }
+proto-builder-trait = { workspace = true }
 tonic-build = { workspace = true }

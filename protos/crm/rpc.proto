@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package crm;
+
+import "crm/messages.proto";
+
+service Crm {
+    // user has registered X days ago,give them a welcome message
+    rpc Welcome (WelcomeRequest) returns (WelcomeResponse);
+    // user has not visited the site for X days, give them a recall message with something to watch
+    rpc Recall (RecallRequest) returns (RecallResponse);
+    // user has not visited the site for X days, give them a reminder message with something they have unfinished
+    rpc Remind (RemindRequest) returns (RemindResponse);
+}

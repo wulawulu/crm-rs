@@ -11,7 +11,7 @@ async fn main() -> anyhow::Result<()> {
     let config = AppConfig::load().expect("Failed to load config");
     let addr = config.server.port;
     let addr = format!("[::1]:{}", addr).parse().unwrap();
-    info!("Metadata Service listening on {}", addr);
+    info!("Notification Service listening on {}", addr);
     let svc = NotificationService::new(config).into_server();
     Server::builder().add_service(svc).serve(addr).await?;
 

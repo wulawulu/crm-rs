@@ -7,6 +7,7 @@ use std::sync::Arc;
 use tokio::sync::mpsc;
 use tokio_stream::wrappers::ReceiverStream;
 use tonic::{Request, Response, Status, Streaming, async_trait};
+use tracing::info;
 
 pub mod abi;
 mod config;
@@ -31,6 +32,7 @@ impl Notification for NotificationService {
         &self,
         request: Request<Streaming<SendRequest>>,
     ) -> Result<Response<Self::SendStream>, Status> {
+        info!("receive request: {:?}", request);
         let stream = request.into_inner();
         self.send(stream).await
     }

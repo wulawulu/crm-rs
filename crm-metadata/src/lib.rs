@@ -3,10 +3,13 @@ use crate::pb::metadata_server::{Metadata, MetadataServer};
 use crate::pb::{Content, MaterializeRequest};
 use tokio_stream::wrappers::ReceiverStream;
 use tonic::{Request, Response, Status, Streaming, async_trait};
+use tracing::info;
 
 pub mod abi;
 mod config;
 pub mod pb;
+
+pub use abi::Tpl;
 
 pub struct MetadataService {
     #[allow(unused)]
@@ -21,6 +24,7 @@ impl Metadata for MetadataService {
         &self,
         request: Request<Streaming<MaterializeRequest>>,
     ) -> Result<Response<Self::MaterializeStream>, Status> {
+        info!("receive request: {:?}", request);
         let query = request.into_inner();
         self.materialize(query).await
     }

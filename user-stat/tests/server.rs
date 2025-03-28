@@ -10,7 +10,8 @@ use tonic::transport::Server;
 use user_stat::pb::user_stats_client::UserStatsClient;
 use user_stat::pb::{QueryRequestBuilder, RawQueryRequestBuilder};
 
-use user_stat::test_utils::{id, new_for_test, tq};
+use user_stat::test_utils::{id, new_for_test};
+use user_stat::tq;
 
 const PORT_BASE: usize = 60000;
 
