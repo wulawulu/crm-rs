@@ -20,14 +20,16 @@ impl UserStatsService {
 
         sql.push_str(&time_condition);
 
-        let id_conditions = query
-            .ids
-            .into_iter()
-            .map(|(k, v)| ids_query(&k, v.ids))
-            .join(" AND ");
+        if !query.ids.is_empty() {
+            let id_conditions = query
+                .ids
+                .into_iter()
+                .map(|(k, v)| ids_query(&k, v.ids))
+                .join(" AND ");
 
-        sql.push_str(" AND ");
-        sql.push_str(&id_conditions);
+            sql.push_str(" AND ");
+            sql.push_str(&id_conditions);
+        }
 
         println!("Generated SQL: {}", sql);
 
