@@ -12,6 +12,15 @@ pub struct User {
     #[builder(setter(into))]
     pub name: ::prost::alloc::string::String,
 }
+#[derive(sqlx::FromRow, Clone, PartialEq, ::prost::Message)]
+pub struct UserWithUnfinished {
+    #[prost(string, tag = "1")]
+    pub email: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub name: ::prost::alloc::string::String,
+    #[prost(int32, repeated, tag = "3")]
+    pub started_but_not_finished: ::prost::alloc::vec::Vec<i32>,
+}
 #[derive(derive_builder::Builder)]
 #[builder(setter(into, strip_option), default)]
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -169,6 +178,26 @@ pub mod user_stats_client {
                 .insert(GrpcMethod::new("user_stats.UserStats", "RawQuery"));
             self.inner.server_streaming(req, path, codec).await
         }
+        pub async fn query_with_unfinished(
+            &mut self,
+            request: impl tonic::IntoRequest<super::QueryRequest>,
+        ) -> std::result::Result<
+            tonic::Response<tonic::codec::Streaming<super::UserWithUnfinished>>,
+            tonic::Status,
+        > {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path =
+                http::uri::PathAndQuery::from_static("/user_stats.UserStats/QueryWithUnfinished");
+            let mut req = request.into_request();
+            req.extensions_mut().insert(GrpcMethod::new(
+                "user_stats.UserStats",
+                "QueryWithUnfinished",
+            ));
+            self.inner.server_streaming(req, path, codec).await
+        }
     }
 }
 /// Generated server implementations.
@@ -202,6 +231,15 @@ pub mod user_stats_server {
             &self,
             request: tonic::Request<super::RawQueryRequest>,
         ) -> std::result::Result<tonic::Response<Self::RawQueryStream>, tonic::Status>;
+        /// Server streaming response type for the QueryWithUnfinished method.
+        type QueryWithUnfinishedStream: tonic::codegen::tokio_stream::Stream<
+                Item = std::result::Result<super::UserWithUnfinished, tonic::Status>,
+            > + std::marker::Send
+            + 'static;
+        async fn query_with_unfinished(
+            &self,
+            request: tonic::Request<super::QueryRequest>,
+        ) -> std::result::Result<tonic::Response<Self::QueryWithUnfinishedStream>, tonic::Status>;
     }
     #[derive(Debug)]
     pub struct UserStatsServer<T> {
@@ -342,6 +380,49 @@ pub mod user_stats_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = RawQuerySvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.server_streaming(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/user_stats.UserStats/QueryWithUnfinished" => {
+                    #[allow(non_camel_case_types)]
+                    struct QueryWithUnfinishedSvc<T: UserStats>(pub Arc<T>);
+                    impl<T: UserStats> tonic::server::ServerStreamingService<super::QueryRequest>
+                        for QueryWithUnfinishedSvc<T>
+                    {
+                        type Response = super::UserWithUnfinished;
+                        type ResponseStream = T::QueryWithUnfinishedStream;
+                        type Future =
+                            BoxFuture<tonic::Response<Self::ResponseStream>, tonic::Status>;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::QueryRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as UserStats>::query_with_unfinished(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = QueryWithUnfinishedSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(

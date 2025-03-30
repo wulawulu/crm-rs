@@ -9,6 +9,12 @@ message User {
     string name = 2;
 }
 
+message UserWithUnfinished {
+    string email = 1;
+    string name = 2;
+    repeated int32 started_but_not_finished = 3;
+}
+
 message QueryRequest {
     map<string, TimeQuery> timestamps = 1;
     map<string, IdQuery> ids = 2;

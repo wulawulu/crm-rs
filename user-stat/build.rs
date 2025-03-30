@@ -14,7 +14,7 @@ fn main() -> Result<()> {
             true,
             Some(&[r#"#[serde(rename_all="camelCase")]"#]),
         )
-        .with_sqlx_from_row(&["User"], None)
+        .with_sqlx_from_row(&["User", "UserWithUnfinished"], None)
         .with_derive_builder(
             &[
                 "User",

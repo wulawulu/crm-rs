@@ -1,6 +1,6 @@
 use crate::config::AppConfig;
 use crate::pb::user_stats_server::{UserStats, UserStatsServer};
-use crate::pb::{QueryRequest, RawQueryRequest, User};
+use crate::pb::{QueryRequest, RawQueryRequest, User, UserWithUnfinished};
 use futures::Stream;
 use sqlx::PgPool;
 use std::ops::Deref;
@@ -19,6 +19,7 @@ pub use abi::tq;
 type ServiceResult<T> = Result<Response<T>, Status>;
 
 type ResponseStream = Pin<Box<dyn Stream<Item = Result<User, Status>> + Send>>;
+type UserUnfinishedStream = Pin<Box<dyn Stream<Item = Result<UserWithUnfinished, Status>> + Send>>;
 
 #[derive(Clone)]
 pub struct UserStatsService {
@@ -47,6 +48,16 @@ impl UserStats for UserStatsService {
     ) -> ServiceResult<Self::RawQueryStream> {
         let query = request.into_inner();
         self.raw_query(query).await
+    }
+
+    type QueryWithUnfinishedStream = UserUnfinishedStream;
+
+    async fn query_with_unfinished(
+        &self,
+        request: Request<QueryRequest>,
+    ) -> Result<Response<Self::QueryWithUnfinishedStream>, Status> {
+        let query = request.into_inner();
+        self.query_with_unfinished(query).await
     }
 }
 

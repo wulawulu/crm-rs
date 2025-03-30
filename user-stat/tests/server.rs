@@ -34,8 +34,29 @@ async fn test_user_stats_query() -> Result<()> {
 }
 
 #[tokio::test]
-async fn test_user_stats_raw_query() -> Result<()> {
+async fn test_user_stats_query_with_unfinished() -> Result<()> {
     let (_t_db, addr) = start_server(PORT_BASE + 1).await?;
+    let mut client = UserStatsClient::connect(format!("http://{}", addr)).await?;
+    let query = QueryRequestBuilder::default()
+        .timestamp(("created_at".to_string(), tq(Some(120), None)))
+        .timestamp(("last_visited_at".to_string(), tq(Some(30), None)))
+        .id(("viewed_but_not_started".to_string(), id(&[252790])))
+        .build()
+        .unwrap();
+    let res = client
+        .query_with_unfinished(Request::new(query))
+        .await?
+        .into_inner();
+    let ret: Vec<_> = res.map(|x| x.unwrap()).collect().await;
+
+    assert_eq!(ret.len(), 0);
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_user_stats_raw_query() -> Result<()> {
+    let (_t_db, addr) = start_server(PORT_BASE + 2).await?;
     let mut client = UserStatsClient::connect(format!("http://{}", addr)).await?;
     let raw_query = RawQueryRequestBuilder::default()
         .query("select * from user_stats where created_at > '2024-01-01' limit 5")

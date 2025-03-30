@@ -1,19 +1,17 @@
-use crate::pb::{QueryRequestBuilder, TimeQuery, User};
+use crate::pb::{QueryRequestBuilder, TimeQuery, User, UserWithUnfinished};
 use crate::{
-    ResponseStream, ServiceResult, UserStatsService,
+    ResponseStream, ServiceResult, UserStatsService, UserUnfinishedStream,
     pb::{QueryRequest, RawQueryRequest},
 };
 use chrono::{DateTime, TimeZone, Utc};
 use itertools::Itertools;
 use prost_types::Timestamp;
-use std::fmt;
-use std::fmt::Formatter;
 use tonic::{Response, Status};
-use tracing::info;
+use tracing::{info, warn};
 
 impl UserStatsService {
     pub async fn query(&self, query: QueryRequest) -> ServiceResult<ResponseStream> {
-        let sql = query.to_string();
+        let sql = query.to_sql(false);
 
         self.raw_query(RawQueryRequest { query: sql }).await
     }
@@ -26,6 +24,27 @@ impl UserStatsService {
             return Err(Status::internal(format!(
                 "Failed to fetch data with query:{}",
                 req.query
+            )));
+        };
+        Ok(Response::new(Box::pin(futures::stream::iter(
+            ret.into_iter().map(Ok),
+        ))))
+    }
+
+    pub async fn query_with_unfinished(
+        &self,
+        query: QueryRequest,
+    ) -> ServiceResult<UserUnfinishedStream> {
+        let sql = query.to_sql(true);
+
+        let Ok(ret) = sqlx::query_as::<_, UserWithUnfinished>(&sql)
+            .fetch_all(&self.inner.pool)
+            .await
+        else {
+            warn!("Failed to fetch data with query:{}", sql);
+            return Err(Status::internal(format!(
+                "Failed to fetch data with query:{}",
+                sql
             )));
         };
         Ok(Response::new(Box::pin(futures::stream::iter(
@@ -52,9 +71,13 @@ fn ts_to_utc(ts: &Timestamp) -> DateTime<Utc> {
     Utc.timestamp_opt(ts.seconds, ts.nanos as _).unwrap()
 }
 
-impl fmt::Display for QueryRequest {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        let mut sql = "SELECT email, name FROM user_stats WHERE ".to_string();
+impl QueryRequest {
+    fn to_sql(&self, with_unfinished: bool) -> String {
+        let mut sql = if with_unfinished {
+            "SELECT email, name,  started_but_not_finished FROM user_stats WHERE ".to_string()
+        } else {
+            "SELECT email, name FROM user_stats WHERE ".to_string()
+        };
 
         let time_condition = self
             .timestamps
@@ -77,7 +100,7 @@ impl fmt::Display for QueryRequest {
 
         info!("Generated SQL: {}", sql);
 
-        write!(f, "{}", sql)
+        sql
     }
 }
 
@@ -169,7 +192,7 @@ mod tests {
             timestamps,
             ids: Default::default(),
         };
-        let sql = query.to_string();
+        let sql = query.to_sql(false);
         assert_eq!(
             sql,
             "SELECT email, name FROM user_stats WHERE created_at BETWEEN '2024-01-01T00:00:00+00:00' AND '2024-01-02T00:00:00+00:00'"

@@ -7,4 +7,5 @@ import "user-stats/messages.proto";
 service UserStats {
     rpc Query (QueryRequest) returns (stream User) {}
     rpc RawQuery (RawQueryRequest) returns (stream User) {}
+    rpc QueryWithUnfinished (QueryRequest) returns (stream UserWithUnfinished) {}
 }
