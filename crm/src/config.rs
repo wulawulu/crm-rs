@@ -16,6 +16,13 @@ pub struct ServerConfig {
     pub metadata_url: String,
     pub notification_url: String,
     pub user_stat_url: String,
+    pub tls: Option<TlsConfig>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct TlsConfig {
+    pub cert: String,
+    pub key: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
