@@ -5,6 +5,8 @@ pub mod pb;
 
 pub use config::AppConfig;
 
+use abi::auth;
+
 use anyhow::Result;
 use crm_metadata::pb::metadata_client::MetadataClient;
 use crm_notification::pb::notification_client::NotificationClient;
@@ -12,6 +14,7 @@ use pb::{
     RecallRequest, RecallResponse, RemindRequest, RemindResponse, WelcomeRequest, WelcomeResponse,
     crm_server::{Crm, CrmServer},
 };
+use tonic::codegen::InterceptedService;
 use tonic::{Request, Response, Status, async_trait, transport::Channel};
 use tracing::info;
 use user_stat::pb::user_stats_client::UserStatsClient;
@@ -30,6 +33,8 @@ impl Crm for CrmService {
         request: Request<WelcomeRequest>,
     ) -> Result<Response<WelcomeResponse>, Status> {
         info!("receive request: {:?}", request);
+        let user: &auth::User = request.extensions().get().unwrap();
+        info!("User: {:?}", user);
         self.welcome(request.into_inner()).await
     }
 
@@ -64,7 +69,10 @@ impl CrmService {
         })
     }
 
-    pub fn into_server(self) -> CrmServer<Self> {
-        CrmServer::new(self)
+    pub fn into_server(
+        self,
+    ) -> Result<InterceptedService<CrmServer<CrmService>, auth::DecodingKey>> {
+        let dk = auth::DecodingKey::load(&self.config.auth.pk)?;
+        Ok(CrmServer::with_interceptor(self, dk))
     }
 }

@@ -14,6 +14,8 @@ use tonic::{Response, Status};
 use tracing::warn;
 use user_stat::pb::QueryRequest;
 
+pub mod auth;
+
 const MAX_CHANNEL_BUFFER: usize = 1024;
 
 impl CrmService {
